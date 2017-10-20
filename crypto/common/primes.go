@@ -39,6 +39,26 @@ func GetSafePrime(bits int) (p *big.Int, err error) {
 	}
 }
 
+// GetSpecialRSAPrimes returns primes P, Q, p, q such that P = 2*p + 1 and Q = 2*q + 1.
+func GetSpecialRSAPrimes(bits int) (P, Q, p, q *big.Int, err error) {
+	p1 := GetGermainPrime(bits - 1)
+	p = big.NewInt(0)
+	p.Mul(p1, big.NewInt(2))
+	p.Add(p, big.NewInt(1))
+
+	q1 := GetGermainPrime(bits - 1)
+	q = big.NewInt(0)
+	q.Mul(q1, big.NewInt(2))
+	q.Add(q, big.NewInt(1))
+
+	if p.BitLen() == bits && q.BitLen() == bits {
+		return p, q, p1, q1, nil
+	} else {
+		err := errors.New("bit length not correct")
+		return nil, nil, nil, nil, err
+	}
+}
+
 // GetGermainPrime returns a prime number p for which 2*p + 1 is also prime. Note that conversely p
 // is called safe prime.
 func GetGermainPrime(bits int) (p *big.Int) {

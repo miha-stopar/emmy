@@ -21,7 +21,26 @@ import (
 	"crypto/sha512"
 	"errors"
 	"math/big"
+	"fmt"
 )
+
+// CRT returns solution to x = a0 mod n0, x = a1 mod n1. Note that n0 and n1 need to be coprime.
+func CRT(a0, a1, n0, n1 *big.Int) (*big.Int, error) {
+	// Search for k, l such that: k*n0 + l*n1 = 1
+	// Then:
+	// x = a0 * l * n1 + a1 * k * n0
+	k := new(big.Int)
+	l := new(big.Int)
+	z := new(big.Int).GCD(k, l, n0, n1)
+	if z.Cmp(big.NewInt(1)) != 0 {
+		return nil, fmt.Errorf("n0 and n1 must be coprime")
+	}
+	x1 := new(big.Int).Mul(a0, l)
+	x1.Mul(x1, n1)
+	x2 := new(big.Int).Mul(a1, k)
+	x2.Mul(x2, n0)
+	return new(big.Int).Add(x1, x2), nil
+}
 
 // It takes big.Int numbers, transform them to bytes, and concatenate the bytes.
 func ConcatenateNumbers(numbers ...*big.Int) []byte {

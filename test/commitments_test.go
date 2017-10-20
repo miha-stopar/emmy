@@ -99,3 +99,13 @@ func TestCommitmentMultiplicationProof(t *testing.T) {
 
 	assert.Equal(t, true, proved, "Commitments multiplication proof failed.")
 }
+
+func TestFujisakiOkamoto(t *testing.T) {
+	success, err := commitments.FujisakiOkamoto()
+	if err != nil {
+		fmt.Println(err)
+		t.Errorf("Error in FujisakiOkamoto")
+	}
+
+	assert.Equal(t, true, success, "Fujisaki-Okamoto failed.")
+}
