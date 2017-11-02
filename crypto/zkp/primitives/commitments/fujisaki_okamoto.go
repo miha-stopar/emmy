@@ -21,7 +21,6 @@ import (
 	"github.com/xlab-si/emmy/crypto/commitments"
 	"github.com/xlab-si/emmy/crypto/common"
 	"fmt"
-	"math/big"
 )
 
 // ProveFujisakiOkamotoCommitmentPreimageKnowledge demonstrates how to prove that for c you know

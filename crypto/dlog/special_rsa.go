@@ -45,3 +45,48 @@ func NewSpecialRSA(safePrimeBitLength int) (*SpecialRSA, error) {
 	}, nil
 }
 
+// GetGeneratorOfCompositeQR returns a generator of a group of quadratic residues.
+// The parameters p and q need to be safe primes.
+func (rsa *SpecialRSA) GetGeneratorOfQR() (g *big.Int, err error) {
+	one := big.NewInt(1)
+	tmp := new(big.Int)
+
+	// The possible orders are 2, p1, q1, 2 * p1, 2 * q1, and 2 * p1 * q1.
+	// We need to make sure that all elements of orders smaller than 2 * p1 * q1 are ruled out.
+
+	for {
+		a := common.GetRandomInt(rsa.N)
+		a_plus := new(big.Int).Add(a, one)
+		a_min := new(big.Int).Sub(a, one)
+		tmp.GCD(nil, nil, a, rsa.P)
+		// p
+		if tmp.Cmp(one) != 0 {
+			continue
+		}
+		tmp.GCD(nil, nil, a_plus, rsa.P)
+		if tmp.Cmp(one) != 0 {
+			continue
+		}
+		tmp.GCD(nil, nil, a_min, rsa.Q)
+		if tmp.Cmp(one) != 0 {
+			continue
+		}
+
+		// q
+		tmp.GCD(nil, nil, a, rsa.Q)
+		if tmp.Cmp(one) != 0 {
+			continue
+		}
+		tmp.GCD(nil, nil, a_plus, rsa.Q)
+		if tmp.Cmp(one) != 0 {
+			continue
+		}
+		tmp.GCD(nil, nil, a_min, rsa.Q)
+		if tmp.Cmp(one) != 0 {
+			continue
+		}
+
+		g := a.Mul(a, big.NewInt(2))
+		return g, nil
+	}
+}

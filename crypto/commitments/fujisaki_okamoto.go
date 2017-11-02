@@ -22,7 +22,6 @@ import (
 	"github.com/xlab-si/emmy/crypto/dlog"
 	"math/big"
 	"errors"
-	"fmt"
 )
 
 func FujisakiOkamoto() (bool, error){
@@ -46,7 +45,6 @@ func FujisakiOkamoto() (bool, error){
 	return success, nil
 }
 
-// Fujisaki-Okamoto commitment scheme is an extension of Pedersen commitment to the RSA modulus.
 type FujisakiOkamotoCommitter struct {
 	N               *big.Int
 	B0              *big.Int
