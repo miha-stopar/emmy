@@ -109,3 +109,13 @@ func TestFujisakiOkamoto(t *testing.T) {
 
 	assert.Equal(t, true, success, "Fujisaki-Okamoto failed.")
 }
+
+func TestFujisakiOkamotoPreimage(t *testing.T) {
+	success, err := commitmentzkp.ProveFujisakiOkamotoCommitmentPreimageKnowledge()
+	if err != nil {
+		fmt.Println(err)
+		t.Errorf("Error in FujisakiOkamoto preimage knowledge proof")
+	}
+
+	assert.Equal(t, true, success, "Fujisaki-Okamoto preimage knowledge proof failed.")
+}

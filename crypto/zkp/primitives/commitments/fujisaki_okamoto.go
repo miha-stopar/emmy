@@ -21,6 +21,7 @@ import (
 	"github.com/xlab-si/emmy/crypto/commitments"
 	"github.com/xlab-si/emmy/crypto/common"
 	"fmt"
+	"math/big"
 )
 
 // ProveFujisakiOkamotoCommitmentPreimageKnowledge demonstrates how to prove that for c you know
@@ -39,10 +40,38 @@ func ProveFujisakiOkamotoCommitmentPreimageKnowledge() (bool, error) {
 		return false, err
 	}
 
-	// TODO
+	receiver.SetCommitment(c)
 
-	fmt.Println(c)
+	prover := NewFujisakiOkamotoPreimageKnowledgeProver()
+
+
+
+	fmt.Println(prover)
 
 	return false, nil
 }
+
+type FujisakiOkamotoPreimageKnowledgeProver struct {
+
+}
+
+func NewFujisakiOkamotoPreimageKnowledgeProver() *FujisakiOkamotoPreimageKnowledgeProver {
+
+	return &FujisakiOkamotoPreimageKnowledgeProver {
+
+	}
+}
+
+
+type FujisakiOkamotoPreimageKnowledgeVerifier struct {
+
+}
+
+func NewFujisakiOkamotoPreimageKnowledgeVerifier() *FujisakiOkamotoPreimageKnowledgeVerifier {
+
+	return &FujisakiOkamotoPreimageKnowledgeVerifier {
+
+	}
+}
+
 
