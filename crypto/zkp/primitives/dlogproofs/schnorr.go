@@ -63,7 +63,7 @@ func NewSchnorrProver(group *groups.SchnorrGroup, protocolType protocoltypes.Pro
 		// TODO: currently Pedersen is using the same dlog as SchnorrProver, this
 		// is because SchnorrVerifier for ZKP/ZKPOK needs to know Pedersen's dlog
 		// to generate a challenge and create a commitment
-		prover.PedersenReceiver = commitments.NewPedersenReceiverFromExistingDLog(group)
+		prover.PedersenReceiver = commitments.NewPedersenReceiverFromExistingSchnorr(group)
 	}
 
 	return &prover

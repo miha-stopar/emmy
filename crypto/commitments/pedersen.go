@@ -95,28 +95,28 @@ type PedersenReceiver struct {
 	commitment *big.Int
 }
 
-func NewPedersenReceiver(group *groups.SchnorrGroup) *PedersenReceiver {
+func NewPedersenReceiver(bitLengthGroupOrder int) (*PedersenReceiver, error) {
+	group, err := groups.NewSchnorrGroup(bitLengthGroupOrder)
+	if err != nil {
+		return nil, fmt.Errorf("error when creating SchnorrGroup: %s", err)
+	}
 	a := common.GetRandomInt(group.Q)
 	h := group.Exp(group.G, a)
-
-	receiver := new(PedersenReceiver)
-	receiver.group = group
-	receiver.a = a
-	receiver.h = h
-
-	return receiver
+	return &PedersenReceiver{
+		group: group,
+		a:     a,
+		h:     h,
+	}, nil
 }
 
-func NewPedersenReceiverFromExistingDLog(group *groups.SchnorrGroup) *PedersenReceiver {
+func NewPedersenReceiverFromExistingSchnorr(group *groups.SchnorrGroup) *PedersenReceiver {
 	a := common.GetRandomInt(group.Q)
 	h := group.Exp(group.G, a)
-
-	receiver := new(PedersenReceiver)
-	receiver.group = group
-	receiver.a = a
-	receiver.h = h
-
-	return receiver
+	return &PedersenReceiver{
+		group: group,
+		a:     a,
+		h:     h,
+	}
 }
 
 func (s *PedersenReceiver) GetH() *big.Int {
