@@ -28,7 +28,7 @@ import (
 func (s *Server) PedersenEC(curveType groups.ECurve, stream pb.Protocol_RunServer) error {
 	pedersenECReceiver := commitments.NewPedersenECReceiver(curveType)
 
-	h := pedersenECReceiver.GetH()
+	h := pedersenECReceiver.H
 	ecge := pb.ECGroupElement{
 		X: h.X.Bytes(),
 		Y: h.Y.Bytes(),

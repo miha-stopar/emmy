@@ -29,11 +29,11 @@ import (
 
 type CL struct {
 	// http://groups.csail.mit.edu/cis/pubs/lysyanskaya/cl02b.pdf
-	numOfBlocks int
-	config      *CLConfig
-	p           *big.Int
-	q           *big.Int
-	pubKey      *CLPubKey
+	numOfAttrs int
+	config     *CLConfig
+	p          *big.Int
+	q          *big.Int
+	pubKey     *CLPubKey
 }
 
 type CLSignature struct {
@@ -43,28 +43,29 @@ type CLSignature struct {
 }
 
 type CLConfig struct {
-	l_n int
-	l_m int
-	l   int
+	l_n       int // modulus bit length
+	l_m       int // attribute bit length
+	l         int // number of attributes
+	sec_param int
 }
 
 type CLPubKey struct {
 	n   *big.Int
-	a_L []*big.Int
+	R_l []*big.Int
 	b   *big.Int
 	c   *big.Int
 }
 
-func NewCL(numOfBlocks int) *CL {
+func NewCL(numOfAttrs int) *CL {
 	config := CLConfig{
-		l_n: 1024,
-		l_m: 160,
-		l:   160,
+		l_n:       1024,
+		l_m:       160,
+		sec_param: 160,
 	}
 
 	cl := CL{
-		numOfBlocks: numOfBlocks,
-		config:      &config,
+		numOfAttrs: numOfAttrs,
+		config:     &config,
 	}
 	cl.generateKey()
 	return &cl
@@ -72,9 +73,9 @@ func NewCL(numOfBlocks int) *CL {
 
 func NewPubCL(pubKey *CLPubKey) *CL {
 	config := CLConfig{
-		l_n: 1024,
-		l_m: 160,
-		l:   160,
+		l_n:       1024,
+		l_m:       160,
+		sec_param: 160,
 	}
 
 	cl := CL{
@@ -86,12 +87,12 @@ func NewPubCL(pubKey *CLPubKey) *CL {
 }
 
 func (cl *CL) getQuadraticResidues(n *big.Int) ([]*big.Int, *big.Int, *big.Int) {
-	var a_L []*big.Int
-	for i := 0; i < cl.numOfBlocks; i++ {
+	var R_L []*big.Int
+	for i := 0; i < cl.numOfAttrs; i++ {
 		aRoot := common.GetRandomInt(n)
 		a := new(big.Int).Mul(aRoot, aRoot)
 		a.Mod(a, n)
-		a_L = append(a_L, a)
+		R_L = append(R_L, a)
 	}
 
 	bRoot := common.GetRandomInt(n)
@@ -101,11 +102,11 @@ func (cl *CL) getQuadraticResidues(n *big.Int) ([]*big.Int, *big.Int, *big.Int) 
 	c := new(big.Int).Mul(cRoot, cRoot)
 	c.Mod(c, n)
 
-	return a_L, b, c
+	return R_L, b, c
 }
 
 func (cl *CL) Sign(m_Ls []*big.Int) (*CLSignature, error) {
-	if cl.numOfBlocks != len(m_Ls) {
+	if cl.numOfAttrs != len(m_Ls) {
 		err := fmt.Errorf("number of message blocks is not correct")
 		return nil, err
 	}
@@ -128,17 +129,17 @@ func (cl *CL) Sign(m_Ls []*big.Int) (*CLSignature, error) {
 		log.Panic("parameter not properly chosen")
 	}
 
-	s := common.GetRandomIntOfLength(cl.config.l_n + cl.config.l_m + cl.config.l)
+	s := common.GetRandomIntOfLength(cl.config.l_n + cl.config.l_m + cl.config.sec_param)
 
-	// v^e = a_1^m_1 * ... * a_L^m_L * b^s * c % n
+	// v^e = a_1^m_1 * ... * R_l^m_L * b^s * c % n
 
 	a := new(big.Int)
-	for i := 0; i < cl.numOfBlocks; i++ {
-		a = new(big.Int).Exp(cl.pubKey.a_L[i], m_Ls[i], cl.pubKey.n)
+	for i := 0; i < cl.numOfAttrs; i++ {
+		a = new(big.Int).Exp(cl.pubKey.R_l[i], m_Ls[i], cl.pubKey.n)
 	}
 
 	t2 := new(big.Int).Exp(cl.pubKey.b, s, cl.pubKey.n) // b^s (mod n)
-	t := new(big.Int).Mul(a, t2)                        // a_1^m_1 * ... * a_L^m_L * b^s (mod n)
+	t := new(big.Int).Mul(a, t2)                        // a_1^m_1 * ... * R_l^m_L * b^s (mod n)
 	t = new(big.Int).Mul(t, cl.pubKey.c)
 	t = new(big.Int).Mod(t, cl.pubKey.n)
 
@@ -187,7 +188,7 @@ func (cl *CL) Verify(m_Ls []*big.Int, signature *CLSignature) (bool, error) {
 	numOfBlocks := len(m_Ls)
 	a := new(big.Int)
 	for i := 0; i < numOfBlocks; i++ {
-		a = new(big.Int).Exp(cl.pubKey.a_L[i], m_Ls[i], cl.pubKey.n)
+		a = new(big.Int).Exp(cl.pubKey.R_l[i], m_Ls[i], cl.pubKey.n)
 	}
 
 	t2 := new(big.Int).Exp(cl.pubKey.b, signature.s, cl.pubKey.n) // b^s
@@ -221,7 +222,7 @@ func (cl *CL) generateKey() (err error) {
 	cl.q = q
 	cl.pubKey = &CLPubKey{
 		n:   n,
-		a_L: a_L,
+		R_l: a_L,
 		b:   b,
 		c:   c,
 	}

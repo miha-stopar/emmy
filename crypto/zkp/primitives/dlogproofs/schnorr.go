@@ -71,7 +71,7 @@ func NewSchnorrProver(group *groups.SchnorrGroup, protocolType protocoltypes.Pro
 
 // Returns pedersenReceiver's h. Verifier needs h to prepare a commitment.
 func (prover *SchnorrProver) GetOpeningMsg() *big.Int {
-	h := prover.PedersenReceiver.GetH()
+	h := prover.PedersenReceiver.H
 	return h
 }
 

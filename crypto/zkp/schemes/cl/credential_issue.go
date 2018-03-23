@@ -18,11 +18,11 @@
 package cl
 
 import (
-	"math/big"
-	"github.com/xlab-si/emmy/crypto/common"
-	"github.com/xlab-si/emmy/crypto/groups"
 	"fmt"
 	"github.com/xlab-si/emmy/crypto/commitments"
+	"github.com/xlab-si/emmy/crypto/common"
+	"github.com/xlab-si/emmy/crypto/groups"
+	"math/big"
 )
 
 type CLParamSizes struct {
@@ -36,48 +36,40 @@ func GetParamSizes() *CLParamSizes {
 	}
 }
 
-type CLParams struct {
-	CommitmentGroup *groups.SchnorrGroup
-	CommitmentH *big.Int
+type CommitmentParams struct {
+	Group *groups.SchnorrGroup
+	H     *big.Int
 }
 
-func GenerateParams(paramSizes *CLParamSizes) (*CLParams, error) {
-	// There are only a few possibilities for RhoBitLen. 256 implies that the modulus
-	// bit length is 2048 (this number corresponds to the Gamma in idemix technical report).
-	commitmentGroup, err := groups.NewSchnorrGroup(paramSizes.RhoBitLen)
+func GenerateCommitmentParams(bitLengthGroupOrder int) (*CommitmentParams, error) {
+	receiver, err := commitments.NewPedersenReceiver(bitLengthGroupOrder)
 	if err != nil {
-		return nil, fmt.Errorf("error when creating SchnorrGroup: %s", err)
+		return nil, fmt.Errorf("error when creating Pedersen receiver: %s", err)
 	}
 
-	a := common.GetRandomInt(commitmentGroup.Q)
-	h := commitmentGroup.Exp(commitmentGroup.G, a)
-
-	// what to do with h? trapdoor not needed any more due to different ZKP technique
-	// should be h pushed into PedersenCommitter constructor?
-
-	return &CLParams{
-		CommitmentGroup: commitmentGroup, // commitmentGroup.G is Rho from idemix technical report
-		CommitmentH: h,
+	return &CommitmentParams{
+		Group: receiver.Group,
+		H:     receiver.H,
 	}, nil
 }
 
 type User struct {
-	CLParams *CLParams
-	masterSecret               *big.Int
-	nyms map[string]*big.Int
+	CommitmentParams *CommitmentParams
+	masterSecret     *big.Int
+	nyms             map[string]*big.Int
 }
 
-func NewUser(clParams *CLParams) *User {
+func NewUser(commitmentParams *CommitmentParams) *User {
 	nyms := make(map[string]*big.Int)
 
 	return &User{
-		CLParams: clParams,
-		nyms: nyms,
+		CommitmentParams: commitmentParams,
+		nyms:             nyms,
 	}
 }
 
 func (u *User) GenerateMasterSecret() {
-	u.masterSecret = common.GetRandomInt(u.CLParams.CommitmentGroup.Q)
+	u.masterSecret = common.GetRandomInt(u.CommitmentParams.Group.Q)
 }
 
 // GenerateNym creates a pseudonym to be used with a given organization. Multiple pseudonyms
@@ -85,7 +77,7 @@ func (u *User) GenerateMasterSecret() {
 // one per organization - not implemented yet). Authentication can be done with respect to
 // the pseudonym or not (depends on the server configuration).
 func (u *User) GenerateNym(orgName string) (*big.Int, error) {
-	committer := commitments.NewPedersenCommitter(u.CLParams.CommitmentGroup)
+	committer := commitments.NewPedersenCommitter(u.CommitmentParams.Group)
 	com, err := committer.GetCommitMsg(u.masterSecret)
 	if err != nil {
 		return nil, fmt.Errorf("error when creating Pedersen commitment: %s", err)
@@ -93,7 +85,3 @@ func (u *User) GenerateNym(orgName string) (*big.Int, error) {
 	u.nyms[orgName] = com
 	return com, nil
 }
-
-
-
-

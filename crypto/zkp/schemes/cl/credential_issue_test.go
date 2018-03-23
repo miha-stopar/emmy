@@ -28,12 +28,15 @@ import (
 
 func TestCLIssue(t *testing.T) {
 	clParamSizes := GetParamSizes()
-	clParams, err := GenerateParams(clParamSizes)
+
+	// There are only a few possibilities for RhoBitLen in emmy. 256 implies that the modulus
+	// bit length is 2048 (this number corresponds to the Gamma in idemix technical report).
+	commitmentParams, err := GenerateCommitmentParams(clParamSizes.RhoBitLen)
 	if err != nil {
-		t.Errorf("error when generating CL params: %v", err)
+		t.Errorf("error when generating commitment params: %v", err)
 	}
 
-	user := NewUser(clParams)
+	user := NewUser(commitmentParams)
 	user.GenerateMasterSecret()
 	nym, err := user.GenerateNym("testOrg")
 	if err != nil {
@@ -42,12 +45,11 @@ func TestCLIssue(t *testing.T) {
 
 	fmt.Println(nym)
 
-
 	/*
-	if err != nil {
-		assert.Equal(t, proved, false, "ECDLogEquality proof failed: %v", err)
-	}
+		if err != nil {
+			assert.Equal(t, proved, false, "ECDLogEquality proof failed: %v", err)
+		}
 
-	assert.Equal(t, proved, true, "ECDLogEquality does not work correctly")
+		assert.Equal(t, proved, true, "ECDLogEquality does not work correctly")
 	*/
 }

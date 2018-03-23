@@ -88,7 +88,7 @@ func NewSchnorrECProver(curveType groups.ECurve, protocolType protocoltypes.Prot
 
 // Returns pedersenReceiver's h. Verifier needs h to prepare a commitment.
 func (prover *SchnorrECProver) GetOpeningMsg() *groups.ECGroupElement {
-	return prover.PedersenReceiver.GetH()
+	return prover.PedersenReceiver.H
 }
 
 // It contains also value b = a^secret.

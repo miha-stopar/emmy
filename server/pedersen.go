@@ -28,7 +28,7 @@ import (
 func (s *Server) Pedersen(group *groups.SchnorrGroup, stream pb.Protocol_RunServer) error {
 	pedersenReceiver := commitments.NewPedersenReceiverFromExistingSchnorr(group)
 
-	h := pedersenReceiver.GetH()
+	h := pedersenReceiver.H
 
 	pedersenFirst := pb.PedersenFirst{
 		H: h.Bytes(),
