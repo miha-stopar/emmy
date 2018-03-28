@@ -25,71 +25,27 @@ import (
 	"github.com/xlab-si/emmy/crypto/groups"
 )
 
-// ProveKnowledgeOfRepresentation demonstrates how the prover proves that it knows (x_1,...,x_k)
-// such that y = g_1^x_1 * ... * g_k^x_k where g_i are given generators of cyclic group G.
-// Note that Schnorr is a special case of RepresentationProver where only one base is used.
-func ProveKnowledgeOfRepresentation() bool {
-	group, err := groups.NewSchnorrGroup(256)
-	if err != nil {
-		fmt.Printf("Error when generating SchnorrGroup: %v", err)
-		return false
-	}
-
-	var bases [3]*big.Int
-	for i := 0; i < len(bases); i++ {
-		r := common.GetRandomInt(group.Q)
-		base := group.Exp(group.G, r)
-		bases[i] = base
-	}
-
-	var secrets [3]*big.Int
-	for i := 0; i < 3; i++ {
-		secret := common.GetRandomInt(group.Q)
-		secrets[i] = secret
-	}
-
-	// y = g_1^x_1 * ... * g_k^x_k where g_i are bases and x_i are secrets
-	y := big.NewInt(1)
-	for i := 0; i < 3; i++ {
-		f := group.Exp(bases[i], secrets[i])
-		y = group.Mul(y, f)
-	}
-
-	prover, err := NewRepresentationProver(group, secrets[:], bases[:], y)
-	if err != nil {
-		fmt.Printf("Error when instantiating RepresentationProver")
-		return false
-	}
-	verifier := NewRepresentationVerifier(group, bases[:], y)
-
-	proofRandomData := prover.GetProofRandomData()
-	verifier.SetProofRandomData(proofRandomData)
-
-	challenge := verifier.GetChallenge()
-	proofData := prover.GetProofData(challenge)
-	verified := verifier.Verify(proofData)
-	return verified
-}
-
 type RepresentationProver struct {
-	Group        *groups.SchnorrGroup
-	secrets      []*big.Int
-	bases        []*big.Int
-	randomValues []*big.Int
-	y            *big.Int
+	Group               groups.CyclicGroup
+	randomnessSpace *big.Int // GetProofRandomData needs to know how big r could be (problem only in hidden order group)
+	secrets             []*big.Int
+	bases               []*big.Int
+	randomValues        []*big.Int
+	y                   *big.Int
 }
 
-func NewRepresentationProver(group *groups.SchnorrGroup, secrets,
+func NewRepresentationProver(group groups.CyclicGroup, randomnessSpace *big.Int, secrets,
 	bases []*big.Int, y *big.Int) (*RepresentationProver, error) {
 	if len(secrets) != len(bases) {
 		return nil, fmt.Errorf("number of secrets and representation bases shoud be the same")
 	}
 
 	return &RepresentationProver{
-		Group:   group,
-		secrets: secrets,
-		bases:   bases,
-		y:       y,
+		Group:               group,
+		randomnessSpace: randomnessSpace,
+		secrets:             secrets,
+		bases:               bases,
+		y:                   y,
 	}, nil
 }
 
@@ -98,7 +54,7 @@ func (prover *RepresentationProver) GetProofRandomData() *big.Int {
 	t := big.NewInt(1)
 	var randomValues []*big.Int
 	for i := 0; i < len(prover.bases); i++ {
-		r := common.GetRandomInt(prover.Group.Q)
+		r := common.GetRandomInt(prover.randomnessSpace)
 		randomValues = append(randomValues, r)
 		f := prover.Group.Exp(prover.bases[i], r)
 		t = prover.Group.Mul(t, f)
@@ -119,19 +75,21 @@ func (prover *RepresentationProver) GetProofData(challenge *big.Int) []*big.Int 
 }
 
 type RepresentationVerifier struct {
-	Group           *groups.SchnorrGroup
+	Group           groups.CyclicGroup
 	bases           []*big.Int
 	proofRandomData *big.Int
 	y               *big.Int
+	challengeSpaceSize int
 	challenge       *big.Int
 }
 
-func NewRepresentationVerifier(group *groups.SchnorrGroup, bases []*big.Int,
-	y *big.Int) *RepresentationVerifier {
+func NewRepresentationVerifier(group groups.CyclicGroup, bases []*big.Int,
+	y *big.Int, challengeSpaceSize int) *RepresentationVerifier {
 	return &RepresentationVerifier{
 		Group: group,
 		bases: bases,
 		y:     y,
+		challengeSpaceSize: challengeSpaceSize,
 	}
 }
 
@@ -140,7 +98,7 @@ func (verifier *RepresentationVerifier) SetProofRandomData(proofRandomData *big.
 }
 
 func (verifier *RepresentationVerifier) GetChallenge() *big.Int {
-	challenge := common.GetRandomInt(verifier.Group.Q)
+	challenge := common.GetRandomIntOfLength(verifier.challengeSpaceSize)
 	verifier.challenge = challenge
 	return challenge
 }

@@ -139,3 +139,9 @@ func (group *SchnorrGroup) IsElementInGroup(x *big.Int) bool {
 	check := group.Exp(x, group.Q) // should be 1
 	return check.Cmp(big.NewInt(1)) == 0
 }
+
+// GetOrder returns the order of Schnorr group (which is Q). Error is included in the
+// output because of the CyclicGroup interface.
+func (group *SchnorrGroup) GetOrder() (*big.Int, error) {
+	return group.Q, nil
+}

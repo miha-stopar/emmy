@@ -27,12 +27,16 @@ import (
 
 type CLParamSizes struct {
 	RhoBitLen int // bit length of order of the commitment group
+	L_n       int // bit length of RSA modulus
+	L_attrs   int // number of attributes
 }
 
 // TODO: load params from file or blockchain or wherever they will be stored.
 func GetParamSizes() *CLParamSizes {
 	return &CLParamSizes{
 		RhoBitLen: 256,
+		L_n:       1024,
+		L_attrs:   3,
 	}
 }
 

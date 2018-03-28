@@ -114,3 +114,11 @@ func (group *QRSpecialRSA) GetRandomElement() (*big.Int, error) {
 	el := group.Exp(g, r)
 	return el, nil
 }
+
+func (group *QRSpecialRSA) GetOrder() (*big.Int, error) {
+	if group.P1 == nil || group.Q1 == nil {
+		return nil,
+			fmt.Errorf("QRSpecialRSA is a group with hidden order - the order knows the entity that generated the group")
+	}
+	return new(big.Int).Mul(group.P1, group.Q1), nil
+}

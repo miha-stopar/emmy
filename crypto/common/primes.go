@@ -55,19 +55,20 @@ func NewSpecialRSAPrimes(P, Q, p, q *big.Int) *SpecialRSAPrimes {
 	}
 }
 
-// GetSpecialRSAPrimes returns primes P, Q, p, q such that P = 2*p + 1 and Q = 2*q + 1.
-func GetSpecialRSAPrimes(bits int) (*SpecialRSAPrimes, error) {
-	p1 := GetGermainPrime(bits - 1)
+// GetSpecialRSAPrimes returns primes P, Q, p, q such that P = 2*p + 1 and Q = 2*q + 1
+// and P, Q are of length bitLength.
+func GetSpecialRSAPrimes(bitLength int) (*SpecialRSAPrimes, error) {
+	p1 := GetGermainPrime(bitLength - 1)
 	p := big.NewInt(0)
 	p.Mul(p1, big.NewInt(2))
 	p.Add(p, big.NewInt(1))
 
-	q1 := GetGermainPrime(bits - 1)
+	q1 := GetGermainPrime(bitLength - 1)
 	q := big.NewInt(0)
 	q.Mul(q1, big.NewInt(2))
 	q.Add(q, big.NewInt(1))
 
-	if p.BitLen() == bits && q.BitLen() == bits {
+	if p.BitLen() == bitLength && q.BitLen() == bitLength {
 		return NewSpecialRSAPrimes(p, q, p1, q1), nil
 	} else {
 		err := fmt.Errorf("bit length not correct")

@@ -17,6 +17,8 @@
 
 package signatures
 
+/*
+
 import (
 	"crypto/rand"
 	"log"
@@ -25,6 +27,8 @@ import (
 	"fmt"
 
 	"github.com/xlab-si/emmy/crypto/common"
+	"golang.org/x/tools/go/gcimporter15/testdata"
+	"github.com/xlab-si/emmy/crypto/groups"
 )
 
 type CL struct {
@@ -33,7 +37,6 @@ type CL struct {
 	config     *CLConfig
 	p          *big.Int
 	q          *big.Int
-	pubKey     *CLPubKey
 }
 
 type CLSignature struct {
@@ -49,13 +52,6 @@ type CLConfig struct {
 	sec_param int
 }
 
-type CLPubKey struct {
-	n   *big.Int
-	R_l []*big.Int
-	b   *big.Int
-	c   *big.Int
-}
-
 func NewCL(numOfAttrs int) *CL {
 	config := CLConfig{
 		l_n:       1024,
@@ -67,7 +63,7 @@ func NewCL(numOfAttrs int) *CL {
 		numOfAttrs: numOfAttrs,
 		config:     &config,
 	}
-	cl.generateKey()
+	cl.generateKey(l_n)
 	return &cl
 }
 
@@ -84,25 +80,6 @@ func NewPubCL(pubKey *CLPubKey) *CL {
 	}
 
 	return &cl
-}
-
-func (cl *CL) getQuadraticResidues(n *big.Int) ([]*big.Int, *big.Int, *big.Int) {
-	var R_L []*big.Int
-	for i := 0; i < cl.numOfAttrs; i++ {
-		aRoot := common.GetRandomInt(n)
-		a := new(big.Int).Mul(aRoot, aRoot)
-		a.Mod(a, n)
-		R_L = append(R_L, a)
-	}
-
-	bRoot := common.GetRandomInt(n)
-	cRoot := common.GetRandomInt(n)
-	b := new(big.Int).Mul(bRoot, bRoot)
-	b.Mod(b, n)
-	c := new(big.Int).Mul(cRoot, cRoot)
-	c.Mod(c, n)
-
-	return R_L, b, c
 }
 
 func (cl *CL) Sign(m_Ls []*big.Int) (*CLSignature, error) {
@@ -177,13 +154,11 @@ func (cl *CL) Verify(m_Ls []*big.Int, signature *CLSignature) (bool, error) {
 	// check v^e = a^m*b^s*c (mod n)
 	// and check: 2^l_e - 1 < e < 2^l_e, where l_e = l_m + 2
 
-	/*
-		b1 := signature.e.Equals(new(big.Int).Exp(big.NewInt(2), big.NewInt(int64(cl.config.l_m+1)), nil))
-		b2 := signature.e.Equals(new(big.Int).Exp(big.NewInt(2), big.NewInt(int64(cl.config.l_m+2)), nil))
-		if (b1 != 1) || (b2 != -1) {
-			return false, nil
-		}
-	*/
+		//b1 := signature.e.Equals(new(big.Int).Exp(big.NewInt(2), big.NewInt(int64(cl.config.l_m+1)), nil))
+		//b2 := signature.e.Equals(new(big.Int).Exp(big.NewInt(2), big.NewInt(int64(cl.config.l_m+2)), nil))
+		//if (b1 != 1) || (b2 != -1) {
+		//	return false, nil
+		//}
 
 	numOfBlocks := len(m_Ls)
 	a := new(big.Int)
@@ -200,31 +175,4 @@ func (cl *CL) Verify(m_Ls []*big.Int, signature *CLSignature) (bool, error) {
 	ve = new(big.Int).Mod(ve, cl.pubKey.n)                        // v^e % n
 	return ve.Cmp(t) == 0, nil
 }
-
-func (cl *CL) GetPubKey() *CLPubKey {
-	return cl.pubKey
-}
-
-func (cl *CL) generateKey() (err error) {
-	// generate two primes of length 512
-	p, err := common.GetSafePrime(512)
-	if err != nil {
-		return err
-	}
-	q, err := common.GetSafePrime(512)
-	if err != nil {
-		return err
-	}
-
-	n := new(big.Int).Mul(p, q)
-	a_L, b, c := cl.getQuadraticResidues(n)
-	cl.p = p
-	cl.q = q
-	cl.pubKey = &CLPubKey{
-		n:   n,
-		R_l: a_L,
-		b:   b,
-		c:   c,
-	}
-	return nil
-}
+*/

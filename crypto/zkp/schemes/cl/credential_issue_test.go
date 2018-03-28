@@ -24,6 +24,7 @@ import (
 	//"github.com/xlab-si/emmy/crypto/common"
 	//"github.com/xlab-si/emmy/crypto/groups"
 	"fmt"
+	"os/user"
 )
 
 func TestCLIssue(t *testing.T) {
@@ -35,6 +36,9 @@ func TestCLIssue(t *testing.T) {
 	if err != nil {
 		t.Errorf("error when generating commitment params: %v", err)
 	}
+
+	issuer := NewIssuer()
+	clPubKey := issuer.GenerateKey(clParamSizes)
 
 	user := NewUser(commitmentParams)
 	user.GenerateMasterSecret()

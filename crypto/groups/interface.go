@@ -29,7 +29,18 @@ import (
 // groups at the moment there is no need for an interface.
 type Group interface {
 	GetRandomElement() *big.Int
+	Add(*big.Int, *big.Int) *big.Int
 	Mul(*big.Int, *big.Int) *big.Int
 	Exp(*big.Int, *big.Int) *big.Int
 	Inv(*big.Int) *big.Int
+}
+
+// Note that some groups have hidden order (like QRSpecialRSA) and GetOrder might return an error -
+// the group order is known only by the entity that generated the group.
+type CyclicGroup interface {
+	Add(*big.Int, *big.Int) *big.Int
+	Mul(*big.Int, *big.Int) *big.Int
+	Exp(*big.Int, *big.Int) *big.Int
+	Inv(*big.Int) *big.Int
+	GetOrder() (*big.Int, error)
 }
